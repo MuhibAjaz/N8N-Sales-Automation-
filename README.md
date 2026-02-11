@@ -143,8 +143,4 @@ To generate warm conversations with UAE hospitals by:
 - Always test with a low limit before full production rollout.
 - Monitor Outlook sending limits and API usage.
 
----
 
-## 📌 License
-
-Private internal use for IPGlobal.

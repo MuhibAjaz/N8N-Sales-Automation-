@@ -1,0 +1,426 @@
+{
+  "name": "N8N Sales Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -464,
+        56
+      ],
+      "id": "f3a4f3e2-4db4-41c5-85e2-cf1a3d4f87dc",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const raw = $json.output[0].content[0].text;\nconst data = JSON.parse(raw);\n\n// Pull row_number from the IF node input item\nconst rowNum = $node[\"If\"].json[\"row_number\"];\n\nreturn {\n  row_number: rowNum,\n  Subject: data.subject,\n  Body: data.body\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        -16
+      ],
+      "id": "a74194a6-31c4-4785-8499-e950901ec878",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d3957652-3cd1-4340-811f-b1084c0289eb",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "Pending",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -912,
+        56
+      ],
+      "id": "d7965196-5e4a-4c45-a8d1-aa88efa6f6cf",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Random delay between 6–10 minutes (in seconds)\nconst min = 360; // 6 minutes\nconst max = 600; // 10 minutes\n\nreturn {\n  json: {\n    delaySeconds: Math.floor(Math.random() * (max - min + 1)) + min\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        -16
+      ],
+      "id": "8672c912-bc89-4b69-bfe9-40a3be4151b1",
+      "name": "Generate Random Delay"
+    },
+    {
+      "parameters": {
+        "amount": "={{$json.delaySeconds}}\n"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1232,
+        56
+      ],
+      "id": "d272e994-aa9f-4548-bb49-4a2d77ddb321",
+      "name": "Wait",
+      "webhookId": "841e090e-9653-4d93-9e94-8863e313c7e2"
+    },
+    {
+      "parameters": {
+        "maxItems": 15
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        56
+      ],
+      "id": "12a2c9d8-0b54-4a44-9370-222adc13ad5f",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 30 8 * * 0-4"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0 0 14 * * 0-4"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1360,
+        56
+      ],
+      "id": "c0b6603a-4920-4e1b-8dc2-e54b67682f1d",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3d0c2481-30a7-4823-bc13-5f6aa1cf26f3",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "Pending",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -240,
+        -16
+      ],
+      "id": "66ab8af3-3bfe-4735-857b-d6d239d52e98",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1136,
+        56
+      ],
+      "id": "a1afc54d-33e6-4707-93a5-d45449837aeb",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WB08XPfZYWAuAJZy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        560,
+        -16
+      ],
+      "id": "51ab1add-4bfb-4d0a-b5af-727de5fa673e",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WB08XPfZYWAuAJZy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You write short first-touch outreach emails for IPGlobal to hospitals & clinics in the UAE.\n\nWe offer ONLY these services for this sector:\n1) Wireless Surveys and Analysis\n2) Wireless Design and Implementation\n3) Wireless Support and Troubleshooting\n\nMAIN GOAL:\nWrite emails that feel written by a real human — calm, simple, and natural.\nNot salesy. Not technical-heavy.\n\nDepartment Awareness Rule (CRITICAL):\n- Use the Departments field ONLY to decide HOW simple or technical the wording should be.\n- NEVER mention the department in the email body.\n\nLanguage Level Rules:\n- If Departments include ANY of:\n  \"Information Technology\"\n  \"Engineering & Technical\"\n  \"C-Suite, Information Technology\"\n  \"Engineering & Technical, Information Technology\"\n  \"Information Technology, Operations\"\n  \"Finance, Information Technology\"\n  → You may use LIGHT technical wording (still simple, no jargon).\n\n- If Departments include ANY of:\n  \"Medical & Health\"\n  \"Operations\"\n  \"Finance\"\n  \"Legal\"\n  or mixed non-IT combinations\n  → Use NON-technical, everyday language only.\n  Focus on impact (slow systems, dropped connections, staff delays).\n\nIntro Variation Rule (MANDATORY):\n- After the greeting, write ONE short introduction line.\n- Rotate naturally between the following styles.\n- Do NOT reuse the same intro style in consecutive emails.\n- Use only Ayyaz (never Hamza).\n\nAllowed intro styles:\n\n1) Ayyaz here from IP Global.\n2) This is Ayyaz from IP Global.\n3) I’m Ayyaz from IP Global.\n4) Quick note from Ayyaz at IP Global.\n5) Ayyaz from IP Global here.\n\nImportant:\n- Keep it to ONE short line only.\n- Do NOT add “Hope you’re doing well.”\n- Do NOT combine multiple intro styles.\n- Do NOT explain the company in the intro line.\n\nHuman Writing Rule (CRITICAL):\n- Write like a person typing a quick email, not explaining a service.\n- Avoid phrases like:\n  “we help companies…”\n  “IPGlobal helps…”\n  “we provide…”\n  “our solutions…”\n- Mention the problem ONCE, naturally.\n- Do NOT repeat the same idea in different words.\n\nGreeting Rule (MANDATORY):\n- If current time is between 08:30–11:59 → start with:\n  “Good morning <First Name>,”\n- Otherwise → start with:\n  “Hi <First Name>,”\n- Do NOT add extra greeting sentences.\n\nTone Rules:\n- Keep it short: 45–75 words.\n- Simple, everyday words.\n- Friendly and conversational.\n- Avoid formal/corporate language.\n- Avoid promotional or spam words:\n  “free”, “offer”, “discount”, “guarantee”, “best”, “limited time”.\n- Use only the lead’s FIRST NAME.\n- Do NOT mention job title, department, or seniority.\n- Mention Dubai or UAE once naturally.\n- Mention ONE realistic hospital Wi-Fi issue.\n- Mention ONE IPGlobal wireless service casually.\n- End with ONE soft, easy question.\n\nSubject Rules:\n- 3–6 words only.\n- Natural and human.\n- Do NOT start with “Fixing”, “Enhancing”.\n- Avoid words like “solution”, “opportunity”.\n\nSignature Rule (MANDATORY):\n- The email MUST end with the following signature exactly.\n- Keep ONE blank line before and after “Best Regards,”.\n- Do NOT add any text after the signature.\n- Do NOT change wording, spacing, or order.\n\nSignature format:\n\nBest Regards,\n\nAyyaz Mehmood Khan\nChief Sales Officer\nInter Prompt Global\n\n+971-55-3682582\nayyaz.m@ipglobal247.com\nwww.ipglobal247.com\n\nB-36, Plot No. 34-0, AL BARSHA FIRST BUILDING (373-408), AL\nBARSHA 1, DUBAI.\n\nOutput Rules:\nReturn ONLY valid JSON:\n\n{\n  \"subject\": \"\",\n  \"body\": \"\",\n  \"service_chosen\": \"\",\n  \"problem_chosen\": \"\"\n}\n"
+            },
+            {
+              "content": "=Write a short outreach email for this hospital contact.\n\nLead Info (use only to decide language level):\nFirst Name: {{$json[\"First Name\"]}}\nDepartments: {{$json[\"Departments\"]}}\nCompany: {{$json[\"Company Name\"]}}\nCity: {{$json[\"Company City\"]}}\nCountry: {{$json[\"Country\"]}}\n\nAllowed Services (mention ONLY ONE):\n- Wireless Surveys and Analysis\n- Wireless Design and Implementation\n- Wireless Support and Troubleshooting\n\nTask:\n- Write a human email (45–75 words).\n- Adjust wording based on Departments (technical vs non-technical).\n- Mention one common hospital Wi-Fi issue in simple terms.\n- Mention Dubai or UAE once.\n- End with one soft question.\n\nReturn ONLY JSON:\n\n{\n  \"subject\": \"\",\n  \"body\": \"Hi {{$json['First Name']}},\",\n  \"service_chosen\": \"\",\n  \"problem_chosen\": \"\"\n}\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        -16
+      ],
+      "id": "1b0f8d82-5941-4433-9038-05122019f5a9",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "dOYF40mGuTuY8BNx",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        784,
+        -16
+      ],
+      "id": "3094c388-353d-491b-8298-c5387b0586d3",
+      "name": "Send a message",
+      "webhookId": "9ac6c735-fc9c-46f0-a554-a7930afd5ed0",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "5Kc50E3mLQxPOtJQ",
+          "name": "Microsoft Outlook account 7"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Random Delay": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Generate Random Delay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "9cd537dd-70e6-41b2-8057-35386dcdef41",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3ce26331bfc40b9a4338b1bf459f157fcdd53f43b9f483b7bb6bdb51505baa4f"
+  },
+  "id": "1GavxZRm7hCOY14HRP1nn",
+  "tags": []
+}
